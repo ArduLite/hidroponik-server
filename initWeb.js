@@ -1,5 +1,8 @@
 const express = require("express");
 const session = require("express-session");
+const mysql = require("mysql2");
+const multer = require("multer");
+const dbConfig = require("./dbConfig");
 const initMqtt = require("./mqtt");
 
 const topikPompa = "hidroponik/8212817281/pompa";
@@ -7,6 +10,11 @@ const topikSetpoint = "hidroponik/8212817281/setpoint";
 
 const USER = "admin";
 const PASS = "12345678";
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
 
 function initWeb(db, client) {
   const app = express();
@@ -61,10 +69,35 @@ function initWeb(db, client) {
   });
 
   app.get("/", requireLogin, (req, res) => {
+    const msg = req.query.msg || null;
     db.query("SELECT * FROM data_sensor ORDER BY id DESC LIMIT 15", (err, result) => {
       res.render("index", {
         data: result,
+        msg: msg,
       });
+    });
+  });
+
+  app.post("/import", requireLogin, upload.single("sqlfile"), (req, res) => {
+    if (!req.file) {
+      return res.redirect("/?msg=nofile");
+    }
+
+    const sql = req.file.buffer.toString("utf8");
+
+    const importDb = mysql.createConnection({
+      ...dbConfig,
+      multipleStatements: true,
+    });
+
+    importDb.query(sql, (err, result) => {
+      importDb.end();
+      if (err) {
+        console.log("Import SQL gagal: " + err.message);
+        return res.redirect("/?msg=fail");
+      }
+      console.log("Import SQL berhasil: " + JSON.stringify(result));
+      res.redirect("/?msg=success");
     });
   });
 
