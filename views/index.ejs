@@ -1,79 +1,310 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 
 <head>
-    <title>Monitoring IoT</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>Monitoring IoT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        hijau: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        (function () {
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+    <script>
+        function toggleTheme() {
+            const root = document.documentElement;
+            const isDark = root.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+    </script>
 </head>
 
-<body>
-    <nav class="navbar bg-body-tertiary">
-        <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">Hidroponik</span>
-        </div>
-    </nav>
+<body class="min-h-screen bg-[#f5f8f3] dark:bg-[#0c1210] text-gray-800 dark:text-gray-200 antialiased transition-colors duration-200">
 
-    <div class="container mb-5">
+    <%
+        const latest = data.length > 0 ? data[0] : null;
+        const C = (2 * Math.PI * 48).toFixed(1);
+        const toNum = (v) => parseFloat(v) || 0;
+        const frac = (val, max) => latest ? Math.min(1, toNum(val) / max) : 0;
+        const pLen = (val, max) => (frac(val, max) * parseFloat(C)).toFixed(1);
+    %>
 
-        <div class="card mt-5" style="width: 18rem;">
-            <div class="card-body">
-                <h5 class="card-title">Pompa</h5>
-                <form class="d-grid gap-2" action="/publish" method="POST">
-                    <input type="hidden" name="status" value="ON">
-                    <input type="hidden" name="aktuator" value="pompa">
-                    <button class="btn btn-success" type="submit">ON</button>
-                </form>
-                <form class="d-grid gap-2 mt-3" action="/publish" method="POST">
-                    <input type="hidden" name="status" value="OFF">
-                    <input type="hidden" name="aktuator" value="pompa">
-                    <button class="btn btn-danger" type="submit">OFF</button>
-                </form>
+    <header class="sticky top-0 z-10 bg-white/80 dark:bg-[#111814]/80 backdrop-blur-md border-b border-gray-200/70 dark:border-gray-800/70">
+        <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-hijau-400 to-hijau-600 flex items-center justify-center shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-6-5.686-6-10a6 6 0 1 1 12 0c0 4.314-6 10-6 10z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 10h6" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-tight">Hidroponik</h1>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">Monitoring IoT</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-hijau-700 dark:text-hijau-300 bg-hijau-50 dark:bg-hijau-900/30 border border-hijau-100 dark:border-hijau-900 rounded-full px-3 py-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-hijau-500"></span>
+                    Sistem Aktif
+                </span>
+                <button onclick="toggleTheme()"
+                    class="inline-flex items-center justify-center w-9 h-9 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    title="Ganti tema">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+                    </svg>
+                </button>
+                <a href="/logout"
+                    class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                    </svg>
+                    Keluar
+                </a>
             </div>
         </div>
+    </header>
 
+    <main class="max-w-5xl mx-auto px-6 py-12">
 
+        <section class="mb-14">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4">Kontrol</h2>
+            <div class="grid gap-6 md:grid-cols-2">
+            <div class="bg-white dark:bg-[#151d19] rounded-2xl border border-gray-200/70 dark:border-gray-800 shadow-sm p-6 sm:p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Pompa</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Atur status pompa hidroponik</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-hijau-50 dark:bg-hijau-900/30 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-hijau-600 dark:text-hijau-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2.25v15m0 0 4.5-4.5M12 17.25l-4.5-4.5M12 21.75a9 9 0 1 0 0-18 9 9 0 0 0 0 18z" />
+                        </svg>
+                    </div>
+                </div>
+                <form action="/publish" method="POST">
+                    <input type="hidden" name="status" value="ON">
+                    <input type="hidden" name="aktuator" value="pompa">
+                    <button type="submit"
+                        class="w-full flex items-center justify-center gap-2 rounded-xl bg-hijau-500 hover:bg-hijau-600 active:bg-hijau-700 text-white text-sm font-medium py-3 transition-colors duration-150 shadow-sm shadow-hijau-200 focus:outline-none focus:ring-2 focus:ring-hijau-300 focus:ring-offset-2 dark:focus:ring-offset-[#151d19]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7 7 7-7 7" />
+                        </svg>
+                        Nyalakan (ON)
+                    </button>
+                </form>
+                <form action="/publish" method="POST" class="mt-3">
+                    <input type="hidden" name="status" value="OFF">
+                    <input type="hidden" name="aktuator" value="pompa">
+                    <button type="submit"
+                        class="w-full flex items-center justify-center gap-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-gray-300 text-gray-600 dark:text-gray-300 text-sm font-medium py-3 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600 focus:ring-offset-2 dark:focus:ring-offset-[#151d19]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                        Matikan (OFF)
+                    </button>
+                </form>
+            </div>
 
-        <table class="table table-striped">
-            <thead>
-                <th>ID</th>
-                <th>DATETIME</th>
-                <th>NUTRISI</th>
-                <th>SUHU</th>
-                <th>KELEMBABAN</th>
-            </thead>
-            <tbody>
-                <% data.forEach(item=> { %>
-                    <tr>
-                        <td>
-                            <%= item.id%>
-                        </td>
-                        <td>
-                            <%= item.datetime%>
-                        </td>
-                        <td>
-                            <%= item.nutrisi%>
-                        </td>
-                        <td>
-                            <%= item.suhu%>
-                        </td>
-                        <td>
-                            <%= item.kelembaban%>
-                        </td>
-                    </tr>
-                    <% }) %>
-            </tbody>
-        </table>
+            <div class="bg-white dark:bg-[#151d19] rounded-2xl border border-gray-200/70 dark:border-gray-800 shadow-sm p-6 sm:p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Setpoint Nutrisi</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Kirim nilai setpoint PPM ke ESP32</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-hijau-50 dark:bg-hijau-900/30 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-hijau-600 dark:text-hijau-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                    </div>
+                </div>
+                <form action="/setpoint" method="POST" class="flex items-end gap-3">
+                    <div class="flex-1">
+                        <label for="ppm" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Nilai PPM</label>
+                        <input type="number" id="ppm" name="ppm" min="0" max="3000" step="10"
+                            placeholder="1200"
+                            class="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 px-4 py-3 text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-hijau-300 focus:border-hijau-300 transition-shadow">
+                    </div>
+                    <button type="submit"
+                        class="flex items-center justify-center gap-2 rounded-xl bg-hijau-500 hover:bg-hijau-600 active:bg-hijau-700 text-white text-sm font-medium px-5 py-3 transition-colors duration-150 shadow-sm shadow-hijau-200 focus:outline-none focus:ring-2 focus:ring-hijau-300 focus:ring-offset-2 dark:focus:ring-offset-[#151d19]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.126A59.768 59.768 0 0 1 21.485 12 59.77 59.77 0 0 1 3.27 20.876L5.999 12Zm0 0h7.5" />
+                        </svg>
+                        Kirim
+                    </button>
+                </form>
+            </div>
+            </div>
+        </section>
 
-    </div>
+        <section class="mb-14">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Status Lingkungan</h2>
+                <span class="text-xs text-gray-400 dark:text-gray-500"><%= latest ? latest.datetime : 'Belum ada data' %></span>
+            </div>
+            <div class="grid gap-6 sm:grid-cols-3">
 
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
-        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"
-        integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y"
-        crossorigin="anonymous"></script>
+                <div class="bg-white dark:bg-[#151d19] rounded-2xl border border-gray-200/70 dark:border-gray-800 shadow-sm p-6 flex flex-col items-center">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-hijau-50 dark:bg-hijau-900/30 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-hijau-600 dark:text-hijau-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h7.5M12 6a1.5 1.5 0 1 0-3 0 4.5 4.5 0 0 0-4.5 4.5V18a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 16.5 18v-7.5A4.5 4.5 0 0 0 12 6Z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Nutrisi</h3>
+                    </div>
+                    <svg viewBox="0 0 120 120" class="w-40 h-40 -my-1">
+                        <defs>
+                            <linearGradient id="grad-nutrisi" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#4ade80" />
+                                <stop offset="100%" stop-color="#16a34a" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="60" cy="60" r="48" fill="none" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="11" />
+                        <circle cx="60" cy="60" r="48" fill="none" stroke="url(#grad-nutrisi)" stroke-width="11" stroke-linecap="round"
+                            stroke-dasharray="<%= pLen(latest && latest.nutrisi, 2000) %> <%= C %>"
+                            transform="rotate(-90 60 60)" />
+                        <text x="60" y="66" text-anchor="middle" font-size="20" font-weight="600" class="fill-gray-900 dark:fill-gray-100">
+                            <%= latest ? latest.nutrisi : '—' %>
+                        </text>
+                        <text x="60" y="84" text-anchor="middle" font-size="10" class="fill-gray-400 dark:fill-gray-500">ppm</text>
+                    </svg>
+                </div>
+
+                <div class="bg-white dark:bg-[#151d19] rounded-2xl border border-gray-200/70 dark:border-gray-800 shadow-sm p-6 flex flex-col items-center">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-hijau-50 dark:bg-hijau-900/30 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-hijau-600 dark:text-hijau-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Kelembaban</h3>
+                    </div>
+                    <svg viewBox="0 0 120 120" class="w-40 h-40 -my-1">
+                        <defs>
+                            <linearGradient id="grad-kelembaban" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#86efac" />
+                                <stop offset="100%" stop-color="#22c55e" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="60" cy="60" r="48" fill="none" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="11" />
+                        <circle cx="60" cy="60" r="48" fill="none" stroke="url(#grad-kelembaban)" stroke-width="11" stroke-linecap="round"
+                            stroke-dasharray="<%= pLen(latest && latest.kelembaban, 100) %> <%= C %>"
+                            transform="rotate(-90 60 60)" />
+                        <text x="60" y="66" text-anchor="middle" font-size="20" font-weight="600" class="fill-gray-900 dark:fill-gray-100">
+                            <%= latest ? latest.kelembaban : '—' %>
+                        </text>
+                        <text x="60" y="84" text-anchor="middle" font-size="10" class="fill-gray-400 dark:fill-gray-500">%</text>
+                    </svg>
+                </div>
+
+                <div class="bg-white dark:bg-[#151d19] rounded-2xl border border-gray-200/70 dark:border-gray-800 shadow-sm p-6 flex flex-col items-center">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-hijau-50 dark:bg-hijau-900/30 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-hijau-600 dark:text-hijau-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3a7.5 7.5 0 0 0-7.5 7.5c0 3.75 3 5.625 4.5 7.5a6.75 6.75 0 0 0 6 0c1.5-1.875 4.5-3.75 4.5-7.5A7.5 7.5 0 0 0 12 3Z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Suhu</h3>
+                    </div>
+                    <svg viewBox="0 0 120 120" class="w-40 h-40 -my-1">
+                        <defs>
+                            <linearGradient id="grad-suhu" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#a7f3d0" />
+                                <stop offset="100%" stop-color="#10b981" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="60" cy="60" r="48" fill="none" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="11" />
+                        <circle cx="60" cy="60" r="48" fill="none" stroke="url(#grad-suhu)" stroke-width="11" stroke-linecap="round"
+                            stroke-dasharray="<%= pLen(latest && latest.suhu, 50) %> <%= C %>"
+                            transform="rotate(-90 60 60)" />
+                        <text x="60" y="66" text-anchor="middle" font-size="20" font-weight="600" class="fill-gray-900 dark:fill-gray-100">
+                            <%= latest ? latest.suhu : '—' %>
+                        </text>
+                        <text x="60" y="84" text-anchor="middle" font-size="10" class="fill-gray-400 dark:fill-gray-500">°C</text>
+                    </svg>
+                </div>
+
+            </div>
+        </section>
+
+        <section>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Data Sensor</h2>
+                <span class="text-xs text-gray-400 dark:text-gray-500"><%= data.length %> catatan</span>
+            </div>
+            <div class="bg-white dark:bg-[#151d19] rounded-2xl border border-gray-200/70 dark:border-gray-800 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200/70 dark:border-gray-800 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <th class="px-6 py-4">ID</th>
+                                <th class="px-6 py-4">Datetime</th>
+                                <th class="px-6 py-4">Nutrisi</th>
+                                <th class="px-6 py-4">Suhu</th>
+                                <th class="px-6 py-4">Kelembaban</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                            <% data.forEach(item=> { %>
+                                <tr class="hover:bg-hijau-50/50 dark:hover:bg-hijau-900/20 transition-colors">
+                                    <td class="px-6 py-4 text-gray-400 dark:text-gray-500 font-mono text-xs"><%= item.id %></td>
+                                    <td class="px-6 py-4 text-gray-600 dark:text-gray-300 whitespace-nowrap"><%= item.datetime %></td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center gap-1.5 text-hijau-700 dark:text-hijau-300 font-medium">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-hijau-400"></span>
+                                            <%= item.nutrisi %>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-600 dark:text-gray-300"><%= item.suhu %></td>
+                                    <td class="px-6 py-4 text-gray-600 dark:text-gray-300"><%= item.kelembaban %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-5xl mx-auto px-6 pb-10 pt-4 text-center text-xs text-gray-400 dark:text-gray-500">
+        Monitoring Hidroponik · Terhubung ke server IoT
+    </footer>
+
 </body>
 
 </html>

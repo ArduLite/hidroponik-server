@@ -1,7 +1,12 @@
 const express = require("express");
+const session = require("express-session");
 const initMqtt = require("./mqtt");
 
 const topikPompa = "hidroponik/8212817281/pompa";
+const topikSetpoint = "hidroponik/8212817281/setpoint";
+
+const USER = "admin";
+const PASS = "12345678";
 
 function initWeb(db, client) {
   const app = express();
@@ -11,9 +16,51 @@ function initWeb(db, client) {
 
   app.use(express.urlencoded({ extended: true }));
 
+  app.use(
+    session({
+      secret: "hidroponik-session-secret",
+      resave: false,
+      saveUninitialized: true,
+      cookie: { maxAge: 60 * 60 * 1000 },
+    })
+  );
+
   app.set("view engine", "ejs");
 
-  app.get("/", (req, res) => {
+  function requireLogin(req, res, next) {
+    if (req.session.loggedIn) {
+      next();
+    } else {
+      res.redirect("/login");
+    }
+  }
+
+  app.get("/login", (req, res) => {
+    if (req.session.loggedIn) {
+      res.redirect("/");
+      return;
+    }
+    res.render("login", { error: null });
+  });
+
+  app.post("/login", (req, res) => {
+    const { username, password } = req.body;
+
+    if (username === USER && password === PASS) {
+      req.session.loggedIn = true;
+      res.redirect("/");
+    } else {
+      res.render("login", { error: "Username atau password salah." });
+    }
+  });
+
+  app.get("/logout", (req, res) => {
+    req.session.destroy(() => {
+      res.redirect("/login");
+    });
+  });
+
+  app.get("/", requireLogin, (req, res) => {
     db.query("SELECT * FROM data_sensor ORDER BY id DESC LIMIT 15", (err, result) => {
       res.render("index", {
         data: result,
@@ -21,14 +68,14 @@ function initWeb(db, client) {
     });
   });
 
-  app.get("/data", (req, res) => {
+  app.get("/data", requireLogin, (req, res) => {
     res.render("data", {
       status: "OFF",
       nutrisi: nutrisi,
     });
   });
 
-  app.post("/publish", (req, res) => {
+  app.post("/publish", requireLogin, (req, res) => {
     const status = req.body.status;
     const aktuator = req.body.aktuator;
 
@@ -41,6 +88,14 @@ function initWeb(db, client) {
       res.redirect('/');
     });
 
+  });
+
+  app.post("/setpoint", requireLogin, (req, res) => {
+    const ppm = req.body.ppm;
+
+    client.publish(topikSetpoint, String(ppm));
+    console.log("Setpoint PPM dikirim: " + ppm + " ke topik " + topikSetpoint);
+    res.redirect('/');
   });
 
   app.listen(3000);
